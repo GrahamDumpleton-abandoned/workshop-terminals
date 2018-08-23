@@ -355,14 +355,14 @@
                             "kind": "ImageStreamTag",
                             "name": "python:3.5",
                             "namespace": "openshift"
-                        }
-                    },
-                    "env": [
-                        {
-                            "name": "OC_CLIENT_URL",
-                            "value": "${OC_CLIENT_URL}"
-                        }
-                    ]
+                        },
+                        "env": [
+                            {
+                                "name": "OC_CLIENT_URL",
+                                "value": "${OC_CLIENT_URL}"
+                            }
+                        ]
+                    }
                 },
                 "output": {
                     "to": {
