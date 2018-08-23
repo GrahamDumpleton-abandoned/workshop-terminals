@@ -1,0 +1,417 @@
+{
+    "kind": "Template",
+    "apiVersion": "v1",
+    "metadata": {
+        "name": "workshop-terminals",
+        "annotations": {
+            "openshift.io/display-name": "Workshop Terminals"
+        }
+    },
+    "parameters": [
+        {
+            "name": "SPAWNER_NAME",
+            "value": "terminals",
+            "required": true
+        },
+        {
+            "name": "WORKSPACE_REPOSITORY_URL",
+            "value": "https://github.com/GrahamDumpleton/workshop-terminals",
+            "required": true
+        },
+        {
+            "name": "WORKSPACE_CONTEXT_DIR",
+            "value": "workspace"
+        },
+        {
+            "name": "WORKSPACE_VOLUME_SIZE",
+            "value": "1Gi"
+        },
+        {
+            "name": "ADMIN_USERS",
+            "value": "admin",
+            "required": false
+        },
+        {
+            "name": "IDLE_TIMEOUT",
+            "value": "7200"
+        }
+    ],
+    "objects": [
+        {
+            "kind": "ServiceAccount",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "${SPAWNER_NAME}-hub",
+                "labels": {
+                    "app": "${SPAWNER_NAME}"
+                },
+                "annotations": {
+                    "serviceaccounts.openshift.io/oauth-redirectreference.first": "{\"kind\":\"OAuthRedirectReference\",\"apiVersion\":\"v1\",\"reference\":{\"kind\":\"Route\",\"name\":\"${SPAWNER_NAME}\"}}",
+                    "serviceaccounts.openshift.io/oauth-redirecturi.first": "hub/oauth_callback",
+                    "serviceaccounts.openshift.io/oauth-want-challenges": "false"
+                }
+            }
+        },
+        {
+            "kind": "RoleBinding",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "${SPAWNER_NAME}-edit",
+                "labels": {
+                    "app": "${SPAWNER_NAME}"
+                }
+            },
+            "subjects": [
+                {
+                    "kind": "ServiceAccount",
+                    "name": "${SPAWNER_NAME}-hub"
+                }
+            ],
+            "roleRef": {
+                "name": "edit"
+            }
+        },
+        {
+            "kind": "ImageStream",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "${SPAWNER_NAME}-hub-s2i",
+                "labels": {
+                    "app": "${SPAWNER_NAME}"
+                }
+            }
+        },
+        {
+            "kind": "BuildConfig",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "${SPAWNER_NAME}-hub-s2i",
+                "labels": {
+                    "app": "${SPAWNER_NAME}"
+                }
+            },
+            "spec": {
+                "triggers": [
+                    {
+                        "type": "ConfigChange"
+                    },
+                    {
+                        "type": "ImageChange"
+                    }
+                ],
+                "source": {
+                    "type": "Git",
+                    "git": {
+                        "uri": "https://github.com/jupyter-on-openshift/jupyterhub-quickstart.git"
+                    }
+                },
+                "strategy": {
+                    "type": "Source",
+                    "sourceStrategy": {
+                        "from": {
+                            "kind": "ImageStreamTag",
+                            "name": "python:3.5",
+                            "namespace": "openshift"
+                        }
+                    }
+                },
+                "output": {
+                    "to": {
+                        "kind": "ImageStreamTag",
+                        "name": "${SPAWNER_NAME}-hub-s2i:latest"
+                    }
+                }
+            }
+        },
+        {
+            "kind": "ImageStream",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "${SPAWNER_NAME}-hub-img",
+                "labels": {
+                    "app": "${SPAWNER_NAME}"
+                }
+            }
+        },
+
+        {
+            "kind": "BuildConfig",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "${SPAWNER_NAME}-hub-img",
+                "labels": {
+                    "app": "${SPAWNER_NAME}"
+                }
+            },
+            "spec": {
+                "triggers": [
+                    {
+                        "type": "ConfigChange"
+                    },
+                    {
+                        "type": "ImageChange"
+                    }
+                ],
+                "source": {
+                    "type": "Git",
+                    "git": {
+                        "uri": "https://github.com/GrahamDumpleton/workshop-terminals.git"
+                    },
+                    "contextDir": "spawner"
+                },
+                "strategy": {
+                    "type": "Source",
+                    "sourceStrategy": {
+                        "from": {
+                            "kind": "ImageStreamTag",
+                            "name": "${SPAWNER_NAME}-hub-s2i:latest"
+                        }
+                    }
+                },
+                "output": {
+                    "to": {
+                        "kind": "ImageStreamTag",
+                        "name": "${SPAWNER_NAME}-hub-img:latest"
+                    }
+                }
+            }
+        },
+        {
+            "kind": "DeploymentConfig",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "${SPAWNER_NAME}",
+                "labels": {
+                    "app": "${SPAWNER_NAME}"
+                }
+            },
+            "spec": {
+                "strategy": {
+                    "type": "Recreate"
+                },
+                "triggers": [
+                    {
+                        "type": "ConfigChange"
+                    },
+                    {
+                        "type": "ImageChange",
+                        "imageChangeParams": {
+                            "automatic": true,
+                            "containerNames": [
+                                "spawner"
+                            ],
+                            "from": {
+                                "kind": "ImageStreamTag",
+                                "name": "${SPAWNER_NAME}-hub-img:latest"
+                            }
+                        }
+                    }
+                ],
+                "replicas": 1,
+                "selector": {
+                    "app": "${SPAWNER_NAME}",
+                    "deploymentconfig": "${SPAWNER_NAME}"
+                },
+                "template": {
+                    "metadata": {
+                        "labels": {
+                            "app": "${SPAWNER_NAME}",
+                            "deploymentconfig": "${SPAWNER_NAME}"
+                        }
+                    },
+                    "spec": {
+                        "serviceAccountName": "${SPAWNER_NAME}-hub",
+                        "containers": [
+                            {
+                                "name": "spawner",
+                                "image": "${SPAWNER_NAME}-hub-img:latest",
+                                "ports": [
+                                    {
+                                        "containerPort": 8080,
+                                        "protocol": "TCP"
+                                    }
+                                ],
+                                "env": [
+                                    {
+                                        "name": "SPAWNER_NAME",
+                                        "value": "${SPAWNER_NAME}"
+                                    },
+                                    {
+                                        "name": "IDLE_TIMEOUT",
+                                        "value": "${IDLE_TIMEOUT}"
+                                    },
+                                    {
+                                        "name": "WORKSPACE_VOLUME_SIZE",
+                                        "value": "${WORKSPACE_VOLUME_SIZE}"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                }
+            }
+        },
+        {
+            "kind": "Service",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "${SPAWNER_NAME}",
+                "labels": {
+                    "app": "${SPAWNER_NAME}"
+                }
+            },
+            "spec": {
+                "ports": [
+                    {
+                        "name": "8080-tcp",
+                        "protocol": "TCP",
+                        "port": 8080,
+                        "targetPort": 8080
+                    },
+                    {
+                        "name": "8081-tcp",
+                        "protocol": "TCP",
+                        "port": 8081,
+                        "targetPort": 8081
+                    }
+                ],
+                "selector": {
+                    "app": "${SPAWNER_NAME}",
+                    "deploymentconfig": "${SPAWNER_NAME}"
+                }
+            }
+        },
+        {
+            "kind": "Route",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "${SPAWNER_NAME}",
+                "labels": {
+                    "app": "${SPAWNER_NAME}"
+                },
+                "annotations": {
+                    "haproxy.router.openshift.io/hsts_header": "max-age=31536000;includeSubDomains"
+                }
+            },
+            "spec": {
+                "host": "",
+                "to": {
+                    "kind": "Service",
+                    "name": "${SPAWNER_NAME}",
+                    "weight": 100
+                },
+                "port": {
+                    "targetPort": "8080-tcp"
+                },
+                "tls": {
+                    "termination": "edge"
+                }
+            }
+        },
+        {
+            "kind": "ImageStream",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "${SPAWNER_NAME}-app-s2i",
+                "labels": {
+                    "app": "${SPAWNER_NAME}"
+                }
+            }
+        },
+        {
+            "kind": "BuildConfig",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "${SPAWNER_NAME}-app-s2i",
+                "labels": {
+                    "app": "${SPAWNER_NAME}"
+                }
+            },
+            "spec": {
+                "triggers": [
+                    {
+                        "type": "ConfigChange"
+                    },
+                    {
+                        "type": "ImageChange"
+                    }
+                ],
+                "source": {
+                    "type": "Git",
+                    "git": {
+                        "uri": "https://github.com/GrahamDumpleton/workshop-terminals.git"
+                    },
+                    "contextDir": "terminal"
+                },
+                "strategy": {
+                    "type": "Source",
+                    "sourceStrategy": {
+                        "from": {
+                            "kind": "ImageStreamTag",
+                            "name": "python:3.5",
+                            "namespace": "openshift"
+                        }
+                    }
+                },
+                "output": {
+                    "to": {
+                        "kind": "ImageStreamTag",
+                        "name": "${SPAWNER_NAME}-app-s2i:latest"
+                    }
+                }
+            }
+        },
+        {
+            "kind": "ImageStream",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "${SPAWNER_NAME}-app-img",
+                "labels": {
+                    "app": "${SPAWNER_NAME}"
+                }
+            }
+        },
+        {
+            "kind": "BuildConfig",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "${SPAWNER_NAME}-app-img",
+                "labels": {
+                    "app": "${SPAWNER_NAME}"
+                }
+            },
+            "spec": {
+                "triggers": [
+                    {
+                        "type": "ConfigChange"
+                    },
+                    {
+                        "type": "ImageChange"
+                    }
+                ],
+                "source": {
+                    "type": "Git",
+                    "git": {
+                        "uri": "${WORKSPACE_REPOSITORY_URL}"
+                    },
+                    "contextDir": "${WORKSPACE_CONTEXT_DIR}"
+                },
+                "strategy": {
+                    "type": "Source",
+                    "sourceStrategy": {
+                        "from": {
+                            "kind": "ImageStreamTag",
+                            "name": "${SPAWNER_NAME}-app-s2i:latest"
+                        }
+                    }
+                },
+                "output": {
+                    "to": {
+                        "kind": "ImageStreamTag",
+                        "name": "${SPAWNER_NAME}-app-img:latest"
+                    }
+                }
+            }
+        }
+    ]
+}
