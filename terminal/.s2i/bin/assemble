@@ -16,7 +16,7 @@ pip install git+https://github.com/GrahamDumpleton/butterfly@uri-root-path#egg=b
 
 curl -s -o /tmp/oc.tar.gz "$OC_CLIENT_URL"
 
-tar -C /opt/app-root/bin -xvfz /tmp/oc.tar.gz oc
+tar -C /opt/app-root/bin -zxvf /tmp/oc.tar.gz oc
 
 rm /tmp/oc.tar.gz
 
