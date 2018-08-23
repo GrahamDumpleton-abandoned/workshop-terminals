@@ -1,0 +1,7 @@
+#!/bin/bash
+
+set -x
+
+mv /tmp/src/scripts/* /opt/app-root/bin
+
+exec /opt/app-root/builder/assemble
