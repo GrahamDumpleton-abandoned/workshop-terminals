@@ -84,6 +84,16 @@ if not host:
 
 c.OpenShiftOAuthenticator.oauth_callback_url = 'https://%s/hub/oauth_callback' % host
 
+# Override URL prefix for application.
+
+def modify_pod_hook(spawner, pod):
+    pod.spec.containers[0].env.append(dict(name='URI_ROOT_PATH',
+            value='/user/%s/' % spawner.user.name))
+
+    return pod
+
+c.KubeSpawner.modify_pod_hook = modify_pod_hook
+
 # Setup culling of front end instance if timeout parameter is supplied.
 
 idle_timeout = os.environ.get('IDLE_TIMEOUT')
