@@ -12,6 +12,14 @@ pip install -U pip setuptools wheel
 
 pip install git+https://github.com/GrahamDumpleton/butterfly@uri-root-path#egg=butterfly
 
+# Download and install oc client application.
+
+curl -s -o /tmp/oc.tar.gz "$OC_CLIENT_URL"
+
+tar -C /opt/app-root/bin -xvfz /tmp/oc.tar.gz oc
+
+rm /tmp/oc.tar.gz
+
 # This S2I assemble script is only used when creating the custom image.
 # For when running the image, or using it as a S2I builder, we use a second
 # set of custom S2I scripts. We now need to move these into the correct

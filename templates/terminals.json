@@ -14,6 +14,11 @@
             "required": true
         },
         {
+            "name": "OC_CLIENT_URL",
+            "value": "https://mirror.openshift.com/pub/openshift-v3/clients/3.9.31/linux/oc.tar.gz",
+            "required": true
+        },
+        {
             "name": "WORKSPACE_REPOSITORY_URL",
             "value": "https://github.com/GrahamDumpleton/workshop-terminals",
             "required": true
@@ -351,7 +356,13 @@
                             "name": "python:3.5",
                             "namespace": "openshift"
                         }
-                    }
+                    },
+                    "env": [
+                        {
+                            "name": "OC_CLIENT_URL",
+                            "value": "${OC_CLIENT_URL}"
+                        }
+                    ]
                 },
                 "output": {
                     "to": {
