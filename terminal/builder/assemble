@@ -1,0 +1,11 @@
+#!/bin/bash
+
+set -x
+
+# Ensure that any requirements.txt from prior build has been removed.
+
+rm -f requirements.txt
+
+# Run the original Python S2I assemble script to install packages.
+
+/usr/libexec/s2i/assemble

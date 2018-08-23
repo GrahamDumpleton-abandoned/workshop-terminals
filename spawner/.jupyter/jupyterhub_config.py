@@ -11,7 +11,7 @@ c.KubeSpawner.hub_connect_ip = spawner_name
 
 c.KubeSpawner.singleuser_image_spec = '%s-app-img' % spawner_name
 
-c.KubeSpawner.cmd = ['/usr/libexec/s2i/run']
+c.KubeSpawner.cmd = ['/opt/app-root/builder/run']
 
 c.KubeSpawner.pod_name_template = '%s-user-{username}' % (
         c.KubeSpawner.hub_connect_ip)

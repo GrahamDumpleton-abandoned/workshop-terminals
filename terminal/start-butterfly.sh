@@ -18,5 +18,4 @@ touch $HOME/.config/butterfly/butterfly.conf
 exec butterfly.server.py --port=8080 --host=0.0.0.0 \
     --uri-root-path="$URI_ROOT_PATH" --unsecure \
     --i-hereby-declare-i-dont-want-any-security-whatsoever \
-    --shell=/opt/app-root/src/shell.sh \
-    --debug --more --logging=debug
+    --shell=/opt/app-root/bin/start-terminal.sh
