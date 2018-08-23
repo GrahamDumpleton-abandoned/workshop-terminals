@@ -4,11 +4,37 @@ set -x
 
 set -eo pipefail
 
-# Ensure we are using the latest pip and wheel packages.
+# Override PATH for the assemble script so that /usr/bin precedes
+# /opt/app-root/bin so wrong Python version isn't found during setup
+# if using Python S2I base image.
 
-pip install -U pip setuptools wheel
+PATH=/usr/bin:$PATH
 
-# Install butterfly browser terminal application.
+# Override HOME directory for the assemble script so that per user
+# files are not installed under /opt/app-root/src. This means that
+# the per user Python area is located under /opt/app-root/.local.
+
+HOME=/opt/app-root
+
+# Install pip for Python 2.7.
+
+curl -s -o /tmp/get-pip.py https://bootstrap.pypa.io/get-pip.py
+
+/usr/bin/python /tmp/get-pip.py --user
+
+rm -f /tmp/get-pip.py
+
+# Install virtualenv for Python 2.7.
+
+/opt/app-root/.local/bin/pip install --no-cache-dir --user virtualenv
+
+# Create a virtual environment for Python 2.7.
+
+/opt/app-root/.local/bin/virtualenv /opt/app-root/butterfly
+
+# Install butterfly into the virtual environment.
+
+source /opt/app-root/butterfly/bin/activate
 
 pip install git+https://github.com/GrahamDumpleton/butterfly@uri-root-path#egg=butterfly
 
@@ -36,7 +62,9 @@ mv /tmp/src/*.sh /opt/app-root/bin
 
 # Ensure passwd/group file intercept happens for any shell environment.
 
-echo "source /opt/app-root/etc/generate_container_user" >> /opt/app-root/etc/scl_enable
+if [ -f /opt/app-root/etc/generate_container_user ]; then
+    echo "source /opt/app-root/etc/generate_container_user" >> /opt/app-root/etc/scl_enable
+fi
 
 # Create additional directories.
 

@@ -21,7 +21,7 @@ oc config set-cluster local --server "https://$KUBERNETES_PORT_443_TCP_ADDR"
 oc config set-context me --cluster local --user "$JUPYTERHUB_USER"
 oc config use-context me
 
-exec butterfly.server.py --port=8080 --host=0.0.0.0 \
-    --uri-root-path="$URI_ROOT_PATH" --unsecure \
+exec /opt/app-root/butterfly/bin/butterfly.server.py --port=8080 \
+    --host=0.0.0.0 --uri-root-path="$URI_ROOT_PATH" --unsecure \
     --i-hereby-declare-i-dont-want-any-security-whatsoever \
     --shell=/opt/app-root/bin/start-terminal.sh
