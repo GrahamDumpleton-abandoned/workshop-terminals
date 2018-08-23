@@ -9,7 +9,7 @@ spawner_name = os.environ.get('SPAWNER_NAME')
 
 c.KubeSpawner.hub_connect_ip = spawner_name
 
-c.KubeSpawner.singleuser_image_spec = '%s-app-img' % spawner_name
+c.KubeSpawner.singleuser_image_spec = 'docker-registry.default.svc:5000/%s-app-img' % spawner_name
 
 c.KubeSpawner.cmd = ['/opt/app-root/builder/run']
 
