@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -x
+
 URI_ROOT_PATH=${URI_ROOT_PATH:-/}
 
 exec butterfly.server.py --port=8080 --host=0.0.0.0 \
