@@ -1,1 +1,2 @@
-butterfly==3.2.3
+#butterfly==3.2.3
+-e git+https://github.com/GrahamDumpleton/butterfly@uri-root-path
