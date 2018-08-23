@@ -7,9 +7,15 @@ import requests
 
 spawner_name = os.environ.get('SPAWNER_NAME')
 
+service_account_name = '%s-hub' %  spawner_name
+service_account_path = '/var/run/secrets/kubernetes.io/serviceaccount'
+
+with open(os.path.join(service_account_path, 'namespace')) as fp:
+    namespace = fp.read().strip()
+
 c.KubeSpawner.hub_connect_ip = spawner_name
 
-c.KubeSpawner.singleuser_image_spec = 'docker-registry.default.svc:5000/%s-app-img' % spawner_name
+c.KubeSpawner.singleuser_image_spec = 'docker-registry.default.svc:5000/%s/%s-app-img' % (namespace, spawner_name)
 
 c.KubeSpawner.cmd = ['/opt/app-root/builder/run']
 
@@ -44,12 +50,6 @@ from oauthenticator.openshift import OpenShiftOAuthenticator
 c.JupyterHub.authenticator_class = OpenShiftOAuthenticator
 
 # Setup authenticator configuration using details from environment.
-
-service_account_name = '%s-hub' %  spawner_name
-service_account_path = '/var/run/secrets/kubernetes.io/serviceaccount'
-
-with open(os.path.join(service_account_path, 'namespace')) as fp:
-    namespace = fp.read().strip()
 
 client_id = 'system:serviceaccount:%s:%s' % (namespace, service_account_name)
 
