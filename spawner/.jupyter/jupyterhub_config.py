@@ -84,11 +84,63 @@ if not host:
 
 c.OpenShiftOAuthenticator.oauth_callback_url = 'https://%s/hub/oauth_callback' % host
 
-# Override URL prefix for application.
+# Override URL prefix for application and copy files to volume.
+
+c.KubeSpawner.user_storage_pvc_ensure = True
+
+c.KubeSpawner.pvc_name_template = '%s-user-{username}' % spawner_name
+
+c.KubeSpawner.user_storage_capacity = '%s' % os.environ['WORKSPACE_VOLUME_SIZE']
+
+c.KubeSpawner.user_storage_access_modes = ['ReadWriteOnce']
+
+c.KubeSpawner.volumes = [
+    {
+        'name': 'data',
+        'persistentVolumeClaim': {
+            'claimName': c.KubeSpawner.pvc_name_template
+        }
+    }
+]
+
+c.KubeSpawner.volume_mounts = [
+    {
+        'name': 'data',
+        'mountPath': '/opt/app-root',
+        'subPath': 'workspace'
+    }
+]
+
+c.KubeSpawner.init_containers = [
+    {
+        'name': 'setup-volume',
+        'image': 'docker-registry.default.svc:5000/%s/%s-app-img' % (namespace, spawner_name),
+        'command': [
+            'setup-volume.sh',
+            '/opt/app-root',
+            '/mnt/workspace'
+        ],
+        'resources': {
+            'limits': {
+                'memory': '256Mi'
+            }
+        },
+        'volumeMounts': [
+            {
+                'name': 'data',
+                'mountPath': '/mnt'
+            }
+        ]
+    }
+]
 
 def modify_pod_hook(spawner, pod):
     pod.spec.containers[0].env.append(dict(name='URI_ROOT_PATH',
             value='/user/%s/' % spawner.user.name))
+
+    #pod.spec.containers[0].volume_mounts.extend(volume_mounts)
+
+    #pod.spec.init_containers.extend(init_containers)
 
     return pod
 
