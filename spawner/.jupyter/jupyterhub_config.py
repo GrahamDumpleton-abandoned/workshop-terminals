@@ -17,7 +17,7 @@ c.KubeSpawner.hub_connect_ip = spawner_name
 
 c.KubeSpawner.singleuser_image_spec = 'docker-registry.default.svc:5000/%s/%s-app-img' % (namespace, spawner_name)
 
-c.KubeSpawner.cmd = ['/opt/app-root/builder/run']
+c.KubeSpawner.cmd = ['/opt/butterfly/bin/start-butterfly.sh']
 
 c.KubeSpawner.pod_name_template = '%s-user-{username}' % (
         c.KubeSpawner.hub_connect_ip)
