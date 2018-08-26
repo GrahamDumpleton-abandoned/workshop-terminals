@@ -5,7 +5,9 @@ FROM centos/s2i-base-centos7:latest
 ENV OC_VERSION=3.9.31
 RUN curl -s -o /tmp/oc.tar.gz "https://mirror.openshift.com/pub/openshift-v3/clients/$OC_VERSION/linux/oc.tar.gz" && \
     tar -C /usr/local/bin -zxvf /tmp/oc.tar.gz oc && \
-    rm /tmp/oc.tar.gz
+    rm /tmp/oc.tar.gz && \
+    curl -sL -o /usr/local/bin/odo https://github.com/redhat-developer/odo/releases/download/v0.0.10/odo-linux-amd64 && \
+    chmod +x /usr/local/bin/odo
 
 # Common environment variables.
 
