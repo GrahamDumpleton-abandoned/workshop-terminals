@@ -112,10 +112,10 @@
                 },
                 "strategy": {
                     "type": "Source",
-                    "sourceStrategy": {
+                    "dockerStrategy": {
                         "from": {
                             "kind": "ImageStreamTag",
-                            "name": "python:3.5",
+                            "name": "python:3.6",
                             "namespace": "openshift"
                         }
                     }
@@ -349,12 +349,11 @@
                     "contextDir": "terminal"
                 },
                 "strategy": {
-                    "type": "Source",
-                    "sourceStrategy": {
+                    "type": "Docker",
+                    "dockerStrategy": {
                         "from": {
-                            "kind": "ImageStreamTag",
-                            "name": "python:3.5",
-                            "namespace": "openshift"
+                            "kind": "DockerImage",
+                            "name": "centos/s2i-base-centos7:latest"
                         },
                         "env": [
                             {
