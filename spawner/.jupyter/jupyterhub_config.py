@@ -114,9 +114,9 @@ c.KubeSpawner.volume_mounts = [
 c.KubeSpawner.init_containers = [
     {
         'name': 'setup-volume',
-        'image': 'docker-registry.default.svc:5000/%s/%s-app-img' % (namespace, spawner_name),
+        'image': '%s' % c.KubeSpawner.singleuser_image_spec,
         'command': [
-            'setup-volume.sh',
+            '/opt/butterfly/bin/setup-volume.sh',
             '/opt/app-root',
             '/mnt/workspace'
         ],
