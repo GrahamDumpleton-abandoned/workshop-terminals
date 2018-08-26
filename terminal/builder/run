@@ -2,4 +2,6 @@
 
 set -x
 
-exec /opt/app-root/bin/start-butterfly.sh
+# Run butterfly terminal application.
+
+exec /opt/butterfly/bin/start-butterfly.sh

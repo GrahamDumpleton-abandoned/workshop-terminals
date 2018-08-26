@@ -2,10 +2,10 @@
 
 set -x
 
-# Ensure that any requirements.txt from prior build has been removed.
+# Copy files to working directory.
 
-rm -f requirements.txt
+shopt -u dotglob
 
-# Run the original Python S2I assemble script to install packages.
+cp -rf /tmp/src/* .
 
-/usr/libexec/s2i/assemble
+rm -rf /tmp/src
